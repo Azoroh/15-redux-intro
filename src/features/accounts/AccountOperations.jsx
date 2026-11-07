@@ -4,7 +4,11 @@ import { deposit, payLoan, requestLoan, withdraw } from "./accountSlice";
 
 function AccountOperations() {
   const dispatch = useDispatch();
-  const { loan: currentLoan, balance } = useSelector((store) => store.account);
+  const {
+    loan: currentLoan,
+    balance,
+    loading,
+  } = useSelector((store) => store.account);
 
   const [depositAmount, setDepositAmount] = useState("");
   const [withdrawalAmount, setWithdrawalAmount] = useState("");
@@ -14,8 +18,9 @@ function AccountOperations() {
 
   function handleDeposit() {
     if (!depositAmount) return;
-    dispatch(deposit(depositAmount));
+    dispatch(deposit(depositAmount, currency));
     setDepositAmount("");
+    setCurrency("");
   }
 
   function handleWithdrawal() {
@@ -59,7 +64,9 @@ function AccountOperations() {
             <option value="GBP">British Pound</option>
           </select>
 
-          <button onClick={handleDeposit}>Deposit {depositAmount}</button>
+          <button onClick={handleDeposit} disabled={loading}>
+            {loading ? "Converting..." : `Deposit ${depositAmount}`}
+          </button>
         </div>
 
         <div>
