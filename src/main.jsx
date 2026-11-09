@@ -6,8 +6,8 @@ import App from "./App";
 
 import store from "./store";
 
-store.dispatch({ type: "account/deposit", payload: 200 });
-console.log(store.getState());
+// store.dispatch({ type: "account/deposit", payload: 200 });
+// console.log(store.getState());
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
