@@ -1,81 +1,122 @@
-const initialStateAccount = {
+import { createSlice } from "@reduxjs/toolkit";
+
+const initialState = {
   balance: 0,
   loan: 0,
   loanPurpose: "",
   loading: false,
 };
 
-export default function accountReducer(state = initialStateAccount, action) {
-  switch (action.type) {
-    case "account/deposit":
-      return {
-        ...state,
-        balance: state.balance + action.payload,
-        loading: false,
-      };
+const accountSlice = createSlice({
+  name: "account",
+  initialState,
+  reducers: {
+    deposit(state, action) {
+      state.balance += action.payload;
+    },
+    withdraw(state, action) {
+      state.balance -= action.payload;
+    },
+    requestLoan: {
+      prepare(amount, purpose) {
+        return { payload: { amount, purpose } };
+      },
 
-    case "account/withdraw":
-      return { ...state, balance: state.balance - action.payload };
+      reducer(state, action) {
+        if (state.loan) return;
 
-    case "account/requestLoan":
-      if (state.loan) return state;
+        state.loan = action.payload.amount;
+        state.loanPurpose = action.payload.purpose;
+        state.balance += action.payload.amount;
+      },
+    },
+    payLoan(state) {
+      state.balance -= state.loan;
+      state.loan = 0;
+      state.loanPurpose = "";
+    },
+  },
+});
 
-      return {
-        ...state,
-        loan: action.payload.amount,
-        loanPurpose: action.payload.purpose,
-        balance: state.balance + action.payload.amount,
-      };
+// console.log(accountSlice);
 
-    case "account/payLoan":
-      return {
-        ...state,
-        loan: 0,
-        loanPurpose: "",
-        balance: state.balance - state.loan,
-      };
+export const { deposit, withdraw, requestLoan, payLoan } = accountSlice.actions;
 
-    case "account/convertingCurrency":
-      return { ...state, loading: true };
+console.log(requestLoan(100, "buy a car"));
 
-    default:
-      return state;
-  }
-}
+export default accountSlice.reducer;
 
-function deposit(amount, currency) {
-  if (currency === "USD") {
-    return { type: "account/deposit", payload: amount };
-  }
+// export default function accountReducer(state = initialState, action) {
+//   switch (action.type) {
+//     case "account/deposit":
+//       return {
+//         ...state,
+//         balance: state.balance + action.payload,
+//         loading: false,
+//       };
 
-  return async (dispatch, getState) => {
-    dispatch({ type: "account/convertingCurrency" });
+//     case "account/withdraw":
+//       return { ...state, balance: state.balance - action.payload };
 
-    const res = await fetch(
-      `https://api.frankfurter.dev/v1/latest?base=${currency}&symbols=USD`,
-    );
-    const data = await res.json();
-    const converted = (amount * data.rates["USD"]).toFixed(2);
+//     case "account/requestLoan":
+//       if (state.loan) return state;
 
-    dispatch({ type: "account/deposit", payload: Number(converted) });
-  };
-}
+//       return {
+//         ...state,
+//         loan: action.payload.amount,
+//         loanPurpose: action.payload.purpose,
+//         balance: state.balance + action.payload.amount,
+//       };
 
-function withdraw(amount) {
-  return { type: "account/withdraw", payload: amount };
-}
+//     case "account/payLoan":
+//       return {
+//         ...state,
+//         loan: 0,
+//         loanPurpose: "",
+//         balance: state.balance - state.loan,
+//       };
 
-function requestLoan(amount, purpose) {
-  return {
-    type: "account/requestLoan",
-    payload: { amount: amount, purpose: purpose },
-  };
-}
+//     case "account/convertingCurrency":
+//       return { ...state, loading: true };
 
-function payLoan() {
-  return {
-    type: "account/payLoan",
-  };
-}
+//     default:
+//       return state;
+//   }
+// }
 
-export { deposit, withdraw, requestLoan, payLoan };
+// function deposit(amount, currency) {
+//   if (currency === "USD") {
+//     return { type: "account/deposit", payload: amount };
+//   }
+
+//   return async (dispatch, getState) => {
+//     dispatch({ type: "account/convertingCurrency" });
+
+//     const res = await fetch(
+//       `https://api.frankfurter.dev/v1/latest?base=${currency}&symbols=USD`,
+//     );
+//     const data = await res.json();
+//     const converted = (amount * data.rates["USD"]).toFixed(2);
+
+//     dispatch({ type: "account/deposit", payload: Number(converted) });
+//   };
+// }
+
+// function withdraw(amount) {
+//   return { type: "account/withdraw", payload: amount };
+// }
+
+// function requestLoan(amount, purpose) {
+//   return {
+//     type: "account/requestLoan",
+//     payload: { amount: amount, purpose: purpose },
+//   };
+// }
+
+// function payLoan() {
+//   return {
+//     type: "account/payLoan",
+//   };
+// }
+
+// export { deposit, withdraw, requestLoan, payLoan };
